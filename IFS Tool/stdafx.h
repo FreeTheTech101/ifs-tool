@@ -17,4 +17,3 @@
 #include "IFS.h"
 
 #define TEMP_EXTRACT "dump.tmp"
-#define TEMP_LIST    "list.tmp"

@@ -14,8 +14,11 @@ SFileExtractFile_w_t SFileExtractFile;
 typedef bool (__stdcall * SFileCloseFile_t)();
 SFileCloseFile_t SFileCloseFile;
 
-typedef bool (__stdcall * SFileReadFile_w_t)(HANDLE file, DWORD length, int* lengthPtr, int unk);
-SFileReadFile_w_t SFileReadFile;
+typedef DWORD (__stdcall * SFileReadFile_w_t)(HANDLE file, DWORD length, LPDWORD pdwRead, int unk);
+SFileReadFile_w_t SFileReadFile_w;
+
+typedef DWORD (__stdcall * SFileReadFile_t)(DWORD length, LPDWORD pdwRead, int unk);
+SFileReadFile_t SFileReadFile;
 
 typedef bool (__stdcall * NIFSOpenFileEx_t)(HANDLE archive, const char * szFileName, DWORD dwSearchScope, HANDLE * phFile, DWORD unk);
 NIFSOpenFileEx_t NIFSOpenFileEx;
@@ -50,31 +53,9 @@ bool __stdcall extractFile(HANDLE _archive, const char* filename)
 	}
 }
 
-vector<string> parseListFile(HANDLE _archive, const char* listfile)
+vector<string> parseListFile(char* buffer, int length)
 {
-	__asm mov ecx, _archive // Pass archive handle to SFileExtractFile
-	if(!SFileExtractFile(listfile, TEMP_LIST))
-		return explode("", "fail");
-
-	FILE* listF = fopen(TEMP_LIST, "r");
-
-	if(!listF)
-		return explode("", "fail");
-
-	fseek (listF, 0, SEEK_END);
-	long length = ftell(listF);
-	rewind (listF);
-
-	char* buffer = (char*)malloc_n(length);
-
-	fread (buffer, 1, length, listF);
-	fclose(listF);
-
-	remove(TEMP_LIST);
-
 	auto entries = explode(buffer, "\n");
-
-	free(buffer);
 
 	// Remove list itself
 	entries.erase(entries.begin());
@@ -120,7 +101,8 @@ void handleFile()
 	SFileOpenArchive = (SFileOpenArchive_w_t)((DWORD)ifs2_lib + 0x16230);
 	SFileExtractFile = (SFileExtractFile_w_t)((DWORD)ifs2_lib + 0x24BA0);
 	SFileCloseFile   = (SFileCloseFile_t)((DWORD)ifs2_lib + 0x1FFB0);
-	SFileReadFile    = (SFileReadFile_w_t)((DWORD)ifs2_lib + 0x24880);
+	SFileReadFile_w    = (SFileReadFile_w_t)((DWORD)ifs2_lib + 0x24880);
+	SFileReadFile    = (SFileReadFile_t)((DWORD)ifs2_lib + 0x215D0);
 	NIFSOpenFileEx   = (NIFSOpenFileEx_t)((DWORD)ifs2_lib + 0x1EDE0);
 
 	// Read filename from command args
@@ -140,6 +122,11 @@ void handleFile()
 	if(!hasEnding(archive, ".ifs"))
 	{
 		archive = "You're an idiot!";
+
+		if(IsDebuggerPresent())
+		{
+			archive = "init_ff_V1.2.1.12.ifs";
+		}
 	}
 
 	// Open archive for reading
@@ -150,19 +137,27 @@ void handleFile()
 	{
 		//Read listFile name
 		string listFile = getListFile(archive.c_str());
-		printf("ListFile: %s\n", listFile.c_str());
 
 		// Read listFile
-		/*
-		int length;
+		DWORD length;
 		HANDLE hListFile;
-		char* buffer = (char*)malloc_n(0x3FFF);
 		NIFSOpenFileEx(_archive, listFile.c_str(), 1, &hListFile, 0);
-		SFileReadFile(hListFile, 0x4000, &length, 1); // Still need to pass the buffer... somehow.
-		*/
+
+		char* buffer = (char*)malloc_n(0x1000);
+
+		__asm
+		{
+			mov edx, buffer
+			mov ecx, hListFile
+		}
+
+		SFileReadFile(0x1000, &length, 1);
+		printf("ListFile: %s (%d)\n", listFile.c_str(), length);
 
 		// Extract files from archive
-		auto files = parseListFile(_archive, listFile.c_str());
+		auto files = parseListFile(buffer, length);
+		free(buffer);
+
 		printf("Extracting %d files...\n", files.size());
 
 		for(int i = 0;i<files.size();i++)
@@ -182,12 +177,6 @@ void handleFile()
 	{
 		printf("Failed to open archive!\n");
 	}
-}
-
-void cleanUp()
-{
-	remove(TEMP_LIST);
-	remove(TEMP_EXTRACT);
 }
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -216,7 +205,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	printf("Press any key to exit...");
 	_getch();
-	cleanUp();
+	remove(TEMP_EXTRACT);
 	return 0;
 }
 
