@@ -30,64 +30,27 @@ const char *va( const char *fmt, ... )
 	return dest;
 }
 
-// determine which patchset to use
-unsigned int _gameFlags;
+char tempFile[MAX_PATH];
 
-typedef struct  
-{
-	const wchar_t* argument;
-	unsigned int flag;
-} flagDef_t;
-
-flagDef_t flags[] =
-{
-	{ L"dump", GAME_FLAG_DUMPDATA },
-	{ 0, 0 }
-};
-
-bool hasLicenseKey = false;
-char licenseKey[48];
-
-const char* GetLicenseKey()
-{
-	return (hasLicenseKey) ? &licenseKey[1] : NULL;
-}
-
-void DetermineGameFlags()
+std::vector<std::string> GetPassedArchives()
 {
 	int numArgs;
+	std::vector<std::string> archives;
 	LPCWSTR commandLine = GetCommandLineW();
 	LPWSTR* argv = CommandLineToArgvW(commandLine, &numArgs);
 
 	for (int i = 0; i < numArgs; i++)
 	{
-		if (argv[i][0] == L'#' || argv[i][0] == L'@')
+		WideCharToMultiByte(CP_ACP, 0, argv[i], -1, tempFile, MAX_PATH, "?", NULL);
+
+		if(hasEnding(tempFile, ".ifs"))
 		{
-			WideCharToMultiByte(CP_ACP, 0, argv[i], -1, licenseKey, sizeof(licenseKey), "?", NULL);
-
-			hasLicenseKey = true;
-		}
-
-		if (argv[i][0] != L'-') continue;
-
-		for (wchar_t* c = argv[i]; *c != L'\0'; c++)
-		{
-			if (*c != L'-')
-			{
-				for (flagDef_t* flag = flags; flag->argument; flag++)
-				{
-					if (!wcscmp(c, flag->argument))
-					{
-						_gameFlags |= flag->flag;
-						break;
-					}
-				}
-				break;
-			}
+			archives.push_back(tempFile);
 		}
 	}
 
 	LocalFree(argv);
+	return archives;
 }
 
 void* malloc_n(size_t length)
