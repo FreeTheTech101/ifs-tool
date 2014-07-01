@@ -142,16 +142,14 @@ void handleFile()
 		DWORD length;
 		HANDLE hListFile;
 		NIFSOpenFileEx(_archive, listFile.c_str(), 1, &hListFile, 0);
-
 		char* buffer = (char*)malloc_n(0x1000);
 
-		__asm
-		{
-			mov edx, buffer
-			mov ecx, hListFile
-		}
-
+		__asm mov edx, buffer
+		__asm mov ecx, hListFile
 		SFileReadFile(0x1000, &length, 1);
+
+		__asm mov esi, hListFile
+		SFileCloseFile();
 		printf("ListFile: %s (%d)\n", listFile.c_str(), length);
 
 		// Extract files from archive
