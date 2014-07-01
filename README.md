@@ -7,3 +7,4 @@ Just move the *.ifs file to the same directory as the IFS Tool.exe (make sure yo
 and drag the .ifs ontop of the .exe. It should extract all the files from it then.
 
 This tool was written as part of the React project (https://react.kthx.at/)
+Copyright © 2014 Maurice Heumann/momo5502 - All rights reserved.
