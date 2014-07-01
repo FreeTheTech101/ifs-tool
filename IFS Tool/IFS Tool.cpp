@@ -14,10 +14,10 @@ SFileExtractFile_w_t SFileExtractFile;
 typedef bool (__stdcall * SFileCloseFile_t)();
 SFileCloseFile_t SFileCloseFile;
 
-typedef DWORD (__stdcall * SFileReadFile_w_t)(HANDLE file, DWORD length, LPDWORD pdwRead, int unk);
+typedef void (__stdcall * SFileReadFile_w_t)(HANDLE file, DWORD length, LPDWORD pdwRead, int unk);
 SFileReadFile_w_t SFileReadFile_w;
 
-typedef DWORD (__stdcall * SFileReadFile_t)(DWORD length, LPDWORD pdwRead, int unk);
+typedef void (__stdcall * SFileReadFile_t)(DWORD length, LPDWORD pdwRead, int unk);
 SFileReadFile_t SFileReadFile;
 
 typedef bool (__stdcall * NIFSOpenFileEx_t)(HANDLE archive, const char * szFileName, DWORD dwSearchScope, HANDLE * phFile, DWORD unk);
