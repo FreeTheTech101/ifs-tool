@@ -4,7 +4,7 @@ using namespace std;
 
 HANDLE ifs2_lib;
 
-// Functions are actually wrappers, as Tencent is too gay to handle function params
+// Functions are actually wrappers, as Tencent is unable to handle function params
 typedef HANDLE (__stdcall * SFileOpenArchive_w_t)(const char* filename, int unk); // Probably file mode?
 SFileOpenArchive_w_t SFileOpenArchive;
 
@@ -17,7 +17,7 @@ SFileCloseFile_t SFileCloseFile;
 bool __stdcall extractFile(HANDLE _archive, const char* filename)
 {
 	__asm mov ecx, _archive // Pass archive handle to SFileExtractFile
-	if(!SFileExtractFile(filename, TEMP_EXTRACT)) // Weirdness is that you have to pass a char* dierectly, doing so as variable will crash. IDK why, probably I'm too dumb...
+	if(!SFileExtractFile(filename, TEMP_EXTRACT)) // Weirdness is that you have to pass a char* directly, doing so as variable will crash. IDK why, probably I'm too dumb...
 	{
 		return false;
 	}
