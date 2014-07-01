@@ -88,12 +88,11 @@ string getListFile(const char* _archive)
 	if(!file)
 		return "";
 
-	int headerSize;
 	string list = "";
+	IFS archiveHeader;
 
-	fseek(file, 4, SEEK_SET);
-	fread(&headerSize, 4, 1, file);
-	fseek(file, headerSize, SEEK_SET);
+	fread(&archiveHeader, sizeof(IFS), 1, file);
+	fseek(file, archiveHeader.HeaderSize, SEEK_SET);
 
 	char buffer;
 
