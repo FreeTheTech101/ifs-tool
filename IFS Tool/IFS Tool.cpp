@@ -14,6 +14,13 @@ SFileExtractFile_w_t SFileExtractFile;
 typedef bool (__stdcall * SFileCloseFile_t)();
 SFileCloseFile_t SFileCloseFile;
 
+typedef bool (__stdcall * SFileReadFile_w_t)(HANDLE file, DWORD length, int* lengthPtr, int unk);
+SFileReadFile_w_t SFileReadFile;
+
+typedef bool (__stdcall * NIFSOpenFileEx_t)(HANDLE archive, const char * szFileName, DWORD dwSearchScope, HANDLE * phFile, DWORD unk);
+NIFSOpenFileEx_t NIFSOpenFileEx;
+
+
 bool __stdcall extractFile(HANDLE _archive, const char* filename)
 {
 	__asm mov ecx, _archive // Pass archive handle to SFileExtractFile
@@ -109,12 +116,16 @@ string getListFile(const char* _archive)
 
 void handleFile()
 {
+	// Define DLL functions
 	SFileOpenArchive = (SFileOpenArchive_w_t)((DWORD)ifs2_lib + 0x16230);
 	SFileExtractFile = (SFileExtractFile_w_t)((DWORD)ifs2_lib + 0x24BA0);
 	SFileCloseFile   = (SFileCloseFile_t)((DWORD)ifs2_lib + 0x1FFB0);
+	SFileReadFile    = (SFileReadFile_w_t)((DWORD)ifs2_lib + 0x24880);
+	NIFSOpenFileEx   = (NIFSOpenFileEx_t)((DWORD)ifs2_lib + 0x1EDE0);
 
+	// Read filename from command args
+	// TODO: Optimize that
 	string archive = GetCommandLine();
-	
 	const size_t last_slash_idx = archive.find_last_of("\\/");
 	if (string::npos != last_slash_idx)
 	{
@@ -131,19 +142,27 @@ void handleFile()
 		archive = "You're an idiot!";
 	}
 
+	// Open archive for reading
 	printf("Opening archive '%s'...\n", archive.c_str());
-
 	HANDLE _archive = SFileOpenArchive(archive.c_str(), 0);
 
 	if(_archive)
 	{
-		auto listFile = getListFile(archive.c_str());
-		char* buffer = (char*)malloc_n(0x400);
-
+		//Read listFile name
+		string listFile = getListFile(archive.c_str());
 		printf("ListFile: %s\n", listFile.c_str());
 
-		auto files = parseListFile(_archive, listFile.c_str());
+		// Read listFile
+		/*
+		int length;
+		HANDLE hListFile;
+		char* buffer = (char*)malloc_n(0x3FFF);
+		NIFSOpenFileEx(_archive, listFile.c_str(), 1, &hListFile, 0);
+		SFileReadFile(hListFile, 0x4000, &length, 1); // Still need to pass the buffer... somehow.
+		*/
 
+		// Extract files from archive
+		auto files = parseListFile(_archive, listFile.c_str());
 		printf("Extracting %d files...\n", files.size());
 
 		for(int i = 0;i<files.size();i++)
@@ -155,6 +174,7 @@ void handleFile()
 			}
 		}
 
+		// Close archive handle
 		__asm mov esi, _archive // Pass archive handle to SFileCloseFile
 		SFileCloseFile();
 	}
