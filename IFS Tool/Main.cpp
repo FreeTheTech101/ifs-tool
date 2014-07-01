@@ -145,7 +145,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	if(!ifs2_lib)
 	{
 		SetConsoleTextAttribute( hstdout, 0x0C );
-		printf("Unable to load IFS2.dll!\n");
+		printf("Unable to load IFS2.dll!\n\n");
 		SetConsoleTextAttribute( hstdout, 0x07 );
 	}
 	else
