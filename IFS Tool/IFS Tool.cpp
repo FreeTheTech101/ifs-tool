@@ -46,10 +46,10 @@ bool __stdcall extractFile(HANDLE _archive, const char* filename)
 vector<string> parseListFile(HANDLE _archive, const char* listfile)
 {
 	__asm mov ecx, _archive // Pass archive handle to SFileExtractFile
-	if(!SFileExtractFile(listfile, "list.lst"))
+	if(!SFileExtractFile(listfile, TEMP_LIST))
 		return explode("", "fail");
 
-	FILE* listF = fopen("list.lst", "r");
+	FILE* listF = fopen(TEMP_LIST, "r");
 
 	if(!listF)
 		return explode("", "fail");
@@ -63,7 +63,7 @@ vector<string> parseListFile(HANDLE _archive, const char* listfile)
 	fread (buffer, 1, length, listF);
 	fclose(listF);
 
-	remove("list.lst");
+	remove(TEMP_LIST);
 
 	auto entries = explode(buffer, "\n");
 
@@ -165,6 +165,12 @@ void handleFile()
 	}
 }
 
+void cleanUp()
+{
+	remove(TEMP_LIST);
+	remove(TEMP_EXTRACT);
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	HANDLE hstdout = GetStdHandle( STD_OUTPUT_HANDLE );
@@ -191,6 +197,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	printf("Press any key to exit...");
 	_getch();
+	cleanUp();
 	return 0;
 }
 
