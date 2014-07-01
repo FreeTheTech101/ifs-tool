@@ -1,47 +1,54 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Quelldateien">
+    <Filter Include="Header">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Headerdateien">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{aca7620b-0b8d-42a1-b1bb-4d84b1df199a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
-      <Filter>Headerdateien</Filter>
+      <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Utils.h">
-      <Filter>Headerdateien</Filter>
+      <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="IFS.h">
-      <Filter>Headerdateien</Filter>
+      <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
-      <Filter>Headerdateien</Filter>
+      <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="afxres.h">
-      <Filter>Headerdateien</Filter>
+      <Filter>Header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Utils.cpp">
-      <Filter>Quelldateien</Filter>
+      <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="IFS.cpp">
-      <Filter>Quelldateien</Filter>
+      <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Main.cpp">
-      <Filter>Quelldateien</Filter>
+      <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="IFS Tool.rc" />
+    <ResourceCompile Include="IFS Tool.rc">
+      <Filter>Resource</Filter>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="icon.ico" />
+    <Image Include="icon.ico">
+      <Filter>Resource</Filter>
+    </Image>
   </ItemGroup>
 </Project>
