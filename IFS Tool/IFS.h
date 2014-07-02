@@ -1,3 +1,4 @@
+// Pretty obsolete now...
 struct IFS
 {
 	DWORD dwSignature;          // 0:3

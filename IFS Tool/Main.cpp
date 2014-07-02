@@ -3,6 +3,7 @@
 using namespace std;
 
 HANDLE hstdout;
+char listBuffer[0xFFFF];
 
 bool extractFile(HANDLE _archive, const char* filename)
 {
@@ -19,9 +20,6 @@ vector<string> parseListFile(char* buffer, int length)
 {
 	auto entries = explode(string(buffer, length), "\n");
 
-	// Remove list itself
-	entries.erase(entries.begin());
-
 	for(int i = 0; i < entries.size();i++)
 	{
 		entries[i] = fixString(entries[i]);
@@ -30,31 +28,36 @@ vector<string> parseListFile(char* buffer, int length)
 	return entries;
 }
 
-// Probably there is a better way to do this, but that's ok for now
-string getListFile(const char* _archive)
+string getListFile(HANDLE _archive)
 {
-	FILE* file = fopen(_archive, "rb");
+	DWORD length;
+	HANDLE hListFile;
+	NIFSOpenFileEx(_archive, "(listfile)", 1, &hListFile, 0);
 
-	if(!file)
+	if(!hListFile)
 		return "";
 
-	string list = "";
-	IFS archiveHeader;
+	__asm mov edx, offset listBuffer
+	__asm mov ecx, hListFile
+	SFileReadFile(sizeof(listBuffer), &length, 1);
 
-	fread(&archiveHeader, sizeof(IFS), 1, file);
-	fseek(file, archiveHeader.HeaderSize, SEEK_SET);
+	if(!length)
+		return "";
 
-	char buffer;
+	auto files = parseListFile(listBuffer, length);
 
-	while (!hasEnding(list, ".lst"))
+	string listName;
+
+	for(int i = 0;i<files.size();i++)
 	{
-		fread(&buffer, 1, 1, file);
-		list += buffer;
+		if(hasEnding(files[i], ".lst"))
+		{
+			listName = files[i];
+			break;
+		}
 	}
 
-	fclose(file);
-
-	return list;
+	return listName;
 }
 
 void handleFile(const char* archive)
@@ -66,40 +69,57 @@ void handleFile(const char* archive)
 	if(_archive)
 	{
 		//Read listFile name
-		string listFile = getListFile(archive);
+		string listFile = getListFile(_archive);
 
 		// Read listFile
 		DWORD length;
 		HANDLE hListFile;
 		NIFSOpenFileEx(_archive, listFile.c_str(), 1, &hListFile, 0);
-		char* buffer = (char*)malloc_n(0x1000);
 
-		__asm mov edx, buffer
-		__asm mov ecx, hListFile
-		SFileReadFile(0x1000, &length, 1);
-
-		__asm mov esi, hListFile
-		SFileCloseFile();
-		printf("ListFile: %s (%d)\n", listFile.c_str(), length);
-
-		// Extract files from archive
-		auto files = parseListFile(buffer, length);
-		free(buffer);
-
-		printf("Extracting %d files...\n", files.size());
-
-		for(int i = 0;i<files.size();i++)
+		if(!hListFile)
 		{
-			printf("%s\n", files[i].c_str());
-			if(!extractFile(_archive, files[i].c_str()))
+			SetConsoleTextAttribute( hstdout, 0x0C );
+			printf("Failed to open listfile!\n");
+			SetConsoleTextAttribute( hstdout, 0x07 );
+		}
+		else
+		{
+			__asm mov edx, offset listBuffer
+			__asm mov ecx, hListFile
+			SFileReadFile(sizeof(listBuffer), &length, 1);
+
+			if(!length)
 			{
 				SetConsoleTextAttribute( hstdout, 0x0C );
-				printf("Failed to extract %s!\n", files[i].c_str());
+				printf("Failed to open listfile!\n");
 				SetConsoleTextAttribute( hstdout, 0x07 );
+			}
+			else
+			{
+				__asm mov esi, hListFile
+				SFileCloseFile();
+				printf("ListFile: %s (%d)\n", listFile.c_str(), length);
+				auto files = parseListFile(listBuffer, length);
+				files.erase(files.begin());
+
+				// Extract files from archive
+				printf("Extracting %d files...\n", files.size());
+
+				for(int i = 0;i<files.size();i++)
+				{
+					printf("%s\n", files[i].c_str());
+					if(!extractFile(_archive, files[i].c_str()))
+					{
+						SetConsoleTextAttribute( hstdout, 0x0C );
+						printf("Failed to extract %s!\n", files[i].c_str());
+						SetConsoleTextAttribute( hstdout, 0x07 );
+					}
+				}
 			}
 		}
 
-		// Close archive handle
+
+		// Dispose archive
 		__asm mov esi, _archive // Pass archive handle to SFileCloseFile
 		SFileCloseFile();
 	}
