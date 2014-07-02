@@ -134,20 +134,23 @@ void handleFile(const char* archive)
 	}
 }
 
+void printTitle(byte color)
+{
+	                                                                                                SetConsoleTextAttribute( hstdout, (color << 4) );
+	printf("                                                                                 ");    SetConsoleTextAttribute( hstdout, color );
+	printf("                                                                              ");       SetConsoleTextAttribute( hstdout, (color << 4) );
+	printf("  ");                                                                                   SetConsoleTextAttribute( hstdout, color );
+	printf("                         React's IFS Tool by momo5502                         ");       SetConsoleTextAttribute( hstdout, (color << 4) );
+	printf("  ");                                                                                   SetConsoleTextAttribute( hstdout, color );
+	printf("                                                                              ");       SetConsoleTextAttribute( hstdout, (color << 4) );
+	printf("                                                                                 \n");  SetConsoleTextAttribute( hstdout, 0x07 );
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
-	byte color = 0xB;
-
 	hstdout = GetStdHandle( STD_OUTPUT_HANDLE );
 	SetConsoleTitle("IFS Tool");
-	SetConsoleTextAttribute( hstdout, (color << 4) );
-	printf("                                                                                \n");
-	SetConsoleTextAttribute( hstdout, color );
-	printf("                          React's IFS Tool by momo5502\n\n");
-	SetConsoleTextAttribute( hstdout, (color << 4) );
-	printf("                                                                                \n");
-
-	SetConsoleTextAttribute( hstdout, 0x07 );
+	printTitle(11);
 
 	HANDLE ifs2_lib = LoadLibrary("IFS2.dll");
 
