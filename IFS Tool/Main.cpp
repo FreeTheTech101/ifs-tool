@@ -4,38 +4,20 @@ using namespace std;
 
 HANDLE hstdout;
 
-bool __stdcall extractFile(HANDLE _archive, const char* filename)
+bool extractFile(HANDLE _archive, const char* filename)
 {
-	__asm mov ecx, _archive // Pass archive handle to SFileExtractFile
-	if(!SFileExtractFile(filename, TEMP_EXTRACT)) // Weirdness is that you have to pass a char* directly, doing so as variable will crash. IDK why, probably I'm too dumb...
+	__asm
 	{
-		return false;
-	}
-	else
-	{
-		// Create directory
-		char* path = (char*)malloc_n(strlen(filename) + 1);
-
-		for(int i = 0;i<strlen(filename);i++)
-		{
-			if(filename[i] == '\\' || filename[i] == '/')
-			{
-				strncpy(path, filename, i);
-				path[i + 1] = 0;
-				_mkdir(path);
-			}
-		}
-
-		free(path);
-
-		MoveFile(TEMP_EXTRACT, filename);
-		return true;
+		push filename
+		push filename
+		mov ecx, _archive
+		call SFileExtractFile
 	}
 }
 
 vector<string> parseListFile(char* buffer, int length)
 {
-	auto entries = explode(buffer, "\n");
+	auto entries = explode(string(buffer, length), "\n");
 
 	// Remove list itself
 	entries.erase(entries.begin());
@@ -172,6 +154,5 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	printf("Press any key to exit...");
 	_getch();
-	remove(TEMP_EXTRACT);
 	return 0;
 }
