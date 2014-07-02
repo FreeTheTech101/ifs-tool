@@ -134,11 +134,12 @@ void handleFile(const char* archive)
 int _tmain(int argc, _TCHAR* argv[])
 {
 	hstdout = GetStdHandle( STD_OUTPUT_HANDLE );
+	SetConsoleTitle("IFS Tool");
 	SetConsoleTextAttribute( hstdout, 0x0B );
 
-	printf("=======================\n");
-	printf("| React IFS extractor |\n");
-	printf("=======================\n\n");
+	printf("________________________________________________________________________________\n");
+	printf("                          React's IFS Tool by momo5502                          ");
+	printf("________________________________________________________________________________\n");
 
 	SetConsoleTextAttribute( hstdout, 0x07 );
 
