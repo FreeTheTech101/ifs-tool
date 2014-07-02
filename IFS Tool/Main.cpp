@@ -20,7 +20,7 @@ bool __stdcall extractFile(HANDLE _archive, const char* filename)
 		{
 			if(filename[i] == '\\' || filename[i] == '/')
 			{
-				memcpy(path, filename, i);
+				strncpy(path, filename, i);
 				path[i + 1] = 0;
 				_mkdir(path);
 			}
