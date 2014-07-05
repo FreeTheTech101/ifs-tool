@@ -179,7 +179,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	else
 	{
 		assignFunctions(ifs2_lib);
-
 		enableDebugOutput(ifs2_lib);
 
 		auto archives = GetPassedArchives();
