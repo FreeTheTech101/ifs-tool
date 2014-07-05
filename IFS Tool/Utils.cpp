@@ -34,8 +34,15 @@ char tempFile[MAX_PATH];
 
 std::vector<std::string> GetPassedArchives()
 {
-	int numArgs;
 	std::vector<std::string> archives;
+
+	if(IsDebuggerPresent())
+	{
+		archives.push_back("init_ff_V1.2.1.12.ifs");
+		return archives;
+	}
+
+	int numArgs;
 	LPCWSTR commandLine = GetCommandLineW();
 	LPWSTR* argv = CommandLineToArgvW(commandLine, &numArgs);
 
@@ -70,11 +77,19 @@ void free_n(void* memPtr)
 
 bool hasEnding (std::string const &fullString, std::string const &ending)
 {
-	if (fullString.length() >= ending.length()) {
+	if (fullString.length() >= ending.length()) 
+	{
 		return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-	} else {
+	}
+	else 
+	{
 		return false;
 	}
+}
+
+bool isRootFile(std::string filename)
+{
+	return (filename.find("/") == std::string::npos && filename.find("\\") == std::string::npos);
 }
 
 std::string fixString(std::string str)

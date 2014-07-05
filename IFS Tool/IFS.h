@@ -26,7 +26,6 @@ struct IFS
 	BYTE MD5_MpqHeader[0x10];       // MD5 of the MPQ header from signature to (including) MD5_HetTable
 };
 
-
 // Functions are actually wrappers, as Tencent is unable to handle function params
 typedef HANDLE (__stdcall * SFileOpenArchive_w_t)(const char* filename, int unk); // Probably file mode?
 extern SFileOpenArchive_w_t SFileOpenArchive;
@@ -37,14 +36,14 @@ extern SFileExtractFile_w_t SFileExtractFile;
 typedef bool (__stdcall * SFileCloseFile_t)();
 extern SFileCloseFile_t SFileCloseFile;
 
-typedef void (__stdcall * SFileReadFile_w_t)(HANDLE file, DWORD length, LPDWORD pdwRead, int unk);
-extern SFileReadFile_w_t SFileReadFile_w;
-
 typedef void (__stdcall * SFileReadFile_t)(DWORD length, LPDWORD pdwRead, int unk);
 extern SFileReadFile_t SFileReadFile;
 
 typedef bool (__stdcall * NIFSOpenFileEx_t)(HANDLE archive, const char * szFileName, DWORD dwSearchScope, HANDLE * phFile, DWORD unk);
 extern NIFSOpenFileEx_t NIFSOpenFileEx;
 
+// Functions with guessed names
+typedef void (__stdcall * DebugEnable_t)();
+extern DebugEnable_t DebugEnable;
 
 void assignFunctions(HANDLE lib);

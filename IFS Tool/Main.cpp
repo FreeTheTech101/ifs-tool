@@ -28,39 +28,45 @@ vector<string> parseListFile(char* buffer, int length)
 	return entries;
 }
 
-string getListFile(HANDLE _archive)
+void cleanListFile(HANDLE _archive, vector<string>* list)
 {
-	DWORD length;
-	HANDLE hListFile;
-	NIFSOpenFileEx(_archive, "(listfile)", 1, &hListFile, 0);
+	HANDLE hFile = 0;
+	vector<int> toClean;
 
-	if(!hListFile)
-		return "";
-
-	__asm mov edx, offset listBuffer
-	__asm mov ecx, hListFile
-	SFileReadFile(sizeof(listBuffer), &length, 1);
-
-	__asm mov esi, hListFile
-	SFileCloseFile();
-
-	if(!length)
-		return "";
-
-	auto files = parseListFile(listBuffer, length);
-
-	string listName;
-
-	for(int i = 0;i<files.size();i++)
+	for(int i = 0; i < list->size(); i++, hFile = 0)
 	{
-		if(hasEnding(files[i], ".lst"))
+		// Check if listFile itself
+		if((isRootFile((*list)[i].c_str()) && hasEnding((*list)[i].c_str(), ".lst")))
 		{
-			listName = files[i];
-			break;
+			toClean.push_back(i);
+			continue;
+		}
+
+		// Could use SFileHasFile instead, but meh...
+		NIFSOpenFileEx(_archive, (*list)[i].c_str(), 1, &hFile, 0);
+
+		if(hFile)
+		{
+			if(*(DWORD *)((char*)hFile + 40) != 0x46494C45) // Check for invalid handle
+			{
+				toClean.push_back(i);
+			}
+			else
+			{
+				__asm mov esi, hFile
+				SFileCloseFile();
+			}
+		}
+		else
+		{
+			toClean.push_back(i);
 		}
 	}
 
-	return listName;
+	for(int i = toClean.size() - 1; i >= 0; i--)
+	{
+		list->erase(list->begin() + toClean[i]);
+	}
 }
 
 void handleFile(const char* archive)
@@ -71,13 +77,10 @@ void handleFile(const char* archive)
 
 	if(_archive)
 	{
-		//Read listFile name
-		string listFile = getListFile(_archive);
-
 		// Read listFile
 		DWORD length;
 		HANDLE hListFile;
-		NIFSOpenFileEx(_archive, listFile.c_str(), 1, &hListFile, 0);
+		NIFSOpenFileEx(_archive, "(listfile)", 1, &hListFile, 0);
 
 		if(!hListFile)
 		{
@@ -101,9 +104,8 @@ void handleFile(const char* archive)
 			{
 				__asm mov esi, hListFile
 				SFileCloseFile();
-				printf("ListFile: %s (%d)\n", listFile.c_str(), length);
 				auto files = parseListFile(listBuffer, length);
-				files.erase(files.begin());
+				cleanListFile(_archive, &files);
 
 				// Extract files from archive
 				printf("Extracting %d files...\n", files.size());
@@ -146,6 +148,20 @@ void printTitle(byte color)
 	printf("                                                                                 \n");  SetConsoleTextAttribute( hstdout, 0x07 );
 }
 
+DWORD debugFuncPtr_1;
+DWORD debugFuncPtr_2;
+
+void enableDebugOutput(HANDLE lib)
+{
+	// Allow debug output
+	if(DO_DEBUG) DebugEnable();
+
+	// Simulate ifsdebug.dll's 'CreateDebugInterface'
+	debugFuncPtr_1 = (DWORD)&OutputDebugStringA;
+	debugFuncPtr_2 = (DWORD)&debugFuncPtr_1;
+	*(DWORD*)((DWORD)lib + 0x88AC0) = (DWORD)&debugFuncPtr_2; 
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	hstdout = GetStdHandle( STD_OUTPUT_HANDLE );
@@ -163,6 +179,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	else
 	{
 		assignFunctions(ifs2_lib);
+
+		enableDebugOutput(ifs2_lib);
 
 		auto archives = GetPassedArchives();
 
