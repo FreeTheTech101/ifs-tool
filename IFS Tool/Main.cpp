@@ -148,18 +148,15 @@ void printTitle(byte color)
 	printf("                                                                                 \n");  SetConsoleTextAttribute( hstdout, 0x07 );
 }
 
-DWORD debugFuncPtr_1;
-DWORD debugFuncPtr_2;
-
 void enableDebugOutput(HANDLE lib)
 {
 	// Allow debug output
 	if(DO_DEBUG) DebugEnable();
 
 	// Simulate ifsdebug.dll's 'CreateDebugInterface'
-	debugFuncPtr_1 = (DWORD)&OutputDebugStringA;
-	debugFuncPtr_2 = (DWORD)&debugFuncPtr_1;
-	*(DWORD*)((DWORD)lib + 0x88AC0) = (DWORD)&debugFuncPtr_2; 
+	static DWORD debugFuncPtr_1 = (DWORD)&OutputDebugStringA;
+	static DWORD debugFuncPtr_2 = (DWORD)&debugFuncPtr_1;
+	*(DWORD*)((DWORD)lib + 0x8CBE0) = (DWORD)&debugFuncPtr_2;
 }
 
 int _tmain(int argc, _TCHAR* argv[])

@@ -198,6 +198,7 @@ $RECYCLE.BIN/
 # Compiler stackdump
 us.stackdump
 
+Release/
 Debug/
 
 clientdll/Release/
